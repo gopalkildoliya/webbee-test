@@ -95,6 +95,23 @@ class MenuController extends BaseController
      */
 
     public function getMenuItems() {
-        throw new \Exception('implement in coding task 3');
+        $menuItems = MenuItem::all();
+        $rootMenu = $menuItems->whereNull('parent_id');
+        $subMenu = $menuItems->whereNotNull('parent_id');
+
+        $menu = $this->makeSubMenu($rootMenu, $subMenu)->toArray();
+
+        return response()->json($menu);
     }
+
+    private function makeSubMenu($root, $items)
+    {
+        foreach ($root as $rootItem) {
+            $subItems = $items->where('parent_id', $rootItem->id);
+            $rootItem['children'] = $this->makeSubMenu($subItems, $items);
+        }
+
+        return $root->values();
+    }
+
 }
